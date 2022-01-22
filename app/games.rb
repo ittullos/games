@@ -12,6 +12,7 @@ set :session_secret, "here be dragons"
   get '/' do
     erb :index
   end
+  
 
   get '/tictactoe' do
     erb :tictactoe
