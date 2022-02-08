@@ -7,6 +7,7 @@ gem 'sequel'
 gem 'sqlite3'
 gem 'pry-byebug'
 gem "sinatra-contrib",require: false
+gem 'json'
 
 group :test do
   gem 'sinatra-sequel'

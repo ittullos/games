@@ -1,0 +1,12 @@
+<h2>Open Lobbies</h2>
+
+<ul>
+  <code>
+    <% @open_lobbies.each do |lobby| %>
+      <a href="/tictactoe?lobby_id=<%= lobby.id %>&role=rival">
+        <li>Lobby ID: <%= Lobby[lobby.id].id %></li>
+      </a>
+      <p>    - Host username: <%= Player[lobby.player_id].name %> </p>
+    <% end %>
+  </code>
+</ul>
