@@ -42,80 +42,18 @@ var gameStarted = false;
 
 console.log(playerRole);
 
-const rivalRefresh = setInterval(function() {
-  const request = new XMLHttpRequest();
-  request.open('GET', '/rival_refresh', true);
-  request.onload = function() {
-    if (this.status >= 200 && this.status < 400) {
-      let rivalJoined = this.response;
-      if (rivalJoined == "true") {
-        boardView.id = "visible"
-        clearInterval(rivalRefresh);
-      }
-    }
-  };
-  request.onerror = function() {
-  };
-  request.send();
-
-
-
-}, 1000);
-
-const gameStartRefresh = setInterval(function() {
-  // console.log("game_start");
-  if (boardView.id == "visible") {
-    const lobbyId = getQueryVariable("lobby_id");
-    gameStarted = true;
-    const gameData = {
-      game_started: "true",
-      lobby_id: lobbyId
-    };
-    if (playerRole == "rival") {
-      postJson(gameData, "/game_start");
-    }
-    clearInterval(gameStartRefresh);
-    return;
+// Repeating function to control state
+const stateRefresh = setInterval(function() {
+  if (boardView.id == "hidden") {
+    getJson('/rival_refresh', rivalRefresh);
   }
-}, 1000);
-
-const playRefresh = setInterval(function() {
+  else {
+    getJson('/play_refresh', playRefresh);
+  }
   console.log("play refresh start ^");
-  if (gameStarted === true) {
-    const request = new XMLHttpRequest();
-    request.open('GET', '/play_refresh', true);
-    request.onload = function() {
-      if (this.status >= 200 && this.status < 400) {
-        let play_info = JSON.parse(this.response);
-        console.log(`playCount: ${playCount}`);
-        if (play_info.play_number > playCount) {
-          console.log("playCount is off =>");
-
-          cellNumber = play_info.cell_id;
-          cells[cellNumber - 1].innerText = play_info.token;
-          gameBoard[cellNumber - 1] = play_info.token;
-          if (playerToken != turn) {
-            if (play_info.token === PLAYER_X) {
-              clickSoundX.play();
-              turn = PLAYER_O;
-            }else {
-              clickSoundO.play();
-              turn = PLAYER_X;
-            }
-
-          }
-          setCellHover();
-          winnerCheck();
-          playCount = play_info.play_number;
-        }
-      }
-    };
-    request.onerror = function() {
-    };
-    request.send();
-  }
 }, 1000);
 
+// Function to extract query variables
 function getQueryVariable(variable) {
   const query = window.location.search.substring(1);
   const vars = query.split("&");
@@ -263,6 +201,60 @@ const postJson = (obj, url) => {
   request.setRequestHeader("Content-Type", "application/json");
 
   request.send(jsonString);
+}
+
+const getJson = function(url, callback) {
+  var request = new XMLHttpRequest();
+  request.onreadystatechange = function() {
+    if (request.readyState == 4 && request.status == 200) {
+      callback(request.responseText);
+      }
+  };
+  request.open('GET', url);
+  request.send();
+}
+
+// Callback functions
+function rivalRefresh(isRival) {
+ if (isRival == "true") {
+   if (boardView.id == "hidden") {
+     boardView.id = "visible";
+     if (playerRole == "rival") {
+       const lobbyId = getQueryVariable("lobby_id");
+       gameStarted = true;
+       const gameData = {
+         game_started: "true",
+         lobby_id: lobbyId
+       };
+       postJson(gameData, "/game_start");
+      }
+    }
+  }
+}
+
+function playRefresh(play_info) {
+  play_info = JSON.parse(play_info);
+  console.log(`playCount: ${playCount}`);
+  if (play_info.play_number > playCount) {
+    console.log("playCount is off =>");
+
+    cellNumber = play_info.cell_id;
+    cells[cellNumber - 1].innerText = play_info.token;
+    gameBoard[cellNumber - 1] = play_info.token;
+    if (playerToken != turn) {
+      if (play_info.token === PLAYER_X) {
+        clickSoundX.play();
+        turn = PLAYER_O;
+      }
+      else {
+        clickSoundO.play();
+        turn = PLAYER_X;
+      }
+    }
+    setCellHover();
+    winnerCheck();
+    playCount = play_info.play_number;
+  }
 }
 
 // Add event listeners
