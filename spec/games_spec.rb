@@ -29,7 +29,7 @@ RSpec.describe Games do
     end
     context 'Lobbies table' do
       it 'stores a new lobby' do
-        expect(@lobby.ties).to eq(12)
+        expect(@lobby.rival_id).to eq(2)
       end
     end
     context 'Games table' do

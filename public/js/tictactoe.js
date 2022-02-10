@@ -38,9 +38,6 @@ const generateToken = role => {
 }
 let playerToken = generateToken(playerRole);
 var playCount = 0;
-// var gameStarted = false;
-
-console.log(playerRole);
 
 // Repeating function to control state
 const stateRefresh = setInterval(function() {
@@ -103,6 +100,13 @@ const winnerCheck = () => {
   const catScratch = gameBoard.every((cell) => cell !== 'null')
   if (catScratch) {
     gameOverDisplay('null');
+    if (playerRole == "host") {
+      tie_info = {
+        winner_flag: "tie",
+        lobby_id: getQueryVariable("lobby_id")
+      }
+      postJson(tie_info, "/tie_log");
+    }
   }
 };
 
@@ -256,9 +260,7 @@ function resetRefresh(isReset) {
 
 function playRefresh(play_info) {
   play_info = JSON.parse(play_info);
-  console.log(`playCount: ${playCount}`);
   if (play_info.play_number > playCount) {
-    console.log("playCount is off =>");
 
     cellNumber = play_info.cell_id;
     cells[cellNumber - 1].innerText = play_info.token;

@@ -93,7 +93,10 @@ set :session_secret, "here be dragons"
   end
 
   get '/game_reset' do
-    if (Lobby[session[:lobby_id]].games.last.winner_id == 0)
+    @lobby = Lobby[session[:lobby_id]]
+    @game = @lobby.games.last
+    # pry.byebug
+    if (@game.plays.count == 0) #&& @game.plays.count == 0)
       @reset = "true"
     else
       @reset = "false"
@@ -106,6 +109,13 @@ set :session_secret, "here be dragons"
     @player_id = session[:player_id]
     @game = @lobby.games.last
     @game.update(winner_id: @player_id.to_i)
+  end
+
+  post '/tie_log' do
+    @tie_info = JSON.parse(request.body.read)
+    @lobby = Lobby[session[:lobby_id]]
+    @game = @lobby.games.last
+    @game.update(winner_id: 1)
   end
 
   get '/join_lobby' do
