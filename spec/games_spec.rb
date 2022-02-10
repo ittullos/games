@@ -11,7 +11,7 @@ RSpec.describe Games do
     before do
       Player.insert(name: 'Steve')
       @player = Player.find(name: 'Steve')
-      @player.add_lobby(rival_id: 2, wins: 27, ties: 12, losses: 4)
+      @player.add_lobby(rival_id: 2)
 
       @lobby = @player.lobbies.first
       @lobby.add_game(started_at: 212, winner_id: 1)

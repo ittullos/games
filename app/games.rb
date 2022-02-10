@@ -46,7 +46,7 @@ set :session_secret, "here be dragons"
 
   get '/create_lobby' do
     @host = Player[session[:player_id]]
-    @host.add_lobby(rival_id: 0, wins: 0, ties: 0, losses: 0)
+    @host.add_lobby(rival_id: 0)
     @lobby = @host.lobbies.last
     session[:lobby_id] = @lobby.id
     redirect "/tictactoe?lobby_id=#{@lobby.id}&role=host"

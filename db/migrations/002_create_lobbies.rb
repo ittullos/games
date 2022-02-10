@@ -4,9 +4,6 @@ Sequel.migration do
       primary_key :id
       foreign_key :player_id, :players
       Integer :rival_id, null: false
-      Integer :wins, null: false
-      Integer :losses, null: false
-      Integer :ties, null: false
     end
   end
 

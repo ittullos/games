@@ -49,9 +49,7 @@ const stateRefresh = setInterval(function() {
   }
   else {
     if (gameOverArea.className == "visible") {
-      if (playAgain.style.display == "none") {
         getJson('/game_reset', resetRefresh);
-      }
     }
     else {
       getJson('/play_refresh', playRefresh);
@@ -118,9 +116,6 @@ const gameOverDisplay = winner => {
         lobby_id: getQueryVariable("lobby_id")
       }
       postJson(winner_info, "/winner_log");
-    }
-    else {
-      playAgain.style.display = "none";
     }
   }
   gameOverArea.className = 'visible';
