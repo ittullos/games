@@ -36,9 +36,9 @@ const generateToken = role => {
     return "O";
   }
 }
-const playerToken = generateToken(playerRole);
+let playerToken = generateToken(playerRole);
 var playCount = 0;
-var gameStarted = false;
+// var gameStarted = false;
 
 console.log(playerRole);
 
@@ -48,9 +48,15 @@ const stateRefresh = setInterval(function() {
     getJson('/rival_refresh', rivalRefresh);
   }
   else {
-    getJson('/play_refresh', playRefresh);
+    if (gameOverArea.className == "visible") {
+      if (playAgain.style.display == "none") {
+        getJson('/game_reset', resetRefresh);
+      }
+    }
+    else {
+      getJson('/play_refresh', playRefresh);
+    }
   }
-  console.log("play refresh start ^");
 }, 1000);
 
 // Function to extract query variables
@@ -108,9 +114,13 @@ const gameOverDisplay = winner => {
     message = `${winner} is the Winner!`;
     if (playerToken == winner) {
       winner_info = {
-        winner_flag: true
+        winner_flag: true,
+        lobby_id: getQueryVariable("lobby_id")
       }
-      postJson(winner_info, '/winner_log');
+      postJson(winner_info, "/winner_log");
+    }
+    else {
+      playAgain.style.display = "none";
     }
   }
   gameOverArea.className = 'visible';
@@ -132,6 +142,8 @@ const cellClick = event => {
     return;
   }
 
+  playCount += 1;
+
   let playInfo = {
     play_number: playCount,
     cell_id: cellNumber,
@@ -152,7 +164,6 @@ const cellClick = event => {
 
   setCellHover();
   winnerCheck();
-  playCount += 1;
 };
 
 const setCellHover = () => {
@@ -183,15 +194,14 @@ const startNewGame = () => {
   else {
     playerToken = 'X'
   }
-  if (playerRole == "rival") {
-    const lobbyId = getQueryVariable("lobby_id");
-    const gameData = {
-      game_started: "true",
-      lobby_id: lobbyId
-    };
-    postJson(gameData, "/game_start");
-  }
+  const lobbyId = getQueryVariable("lobby_id");
+  const gameData = {
+    game_started: "true",
+    lobby_id: lobbyId
+  };
+  postJson(gameData, "/game_start");
 }
+
 
 const postJson = (obj, url) => {
   const jsonString = JSON.stringify(obj);
@@ -221,13 +231,30 @@ function rivalRefresh(isRival) {
      boardView.id = "visible";
      if (playerRole == "rival") {
        const lobbyId = getQueryVariable("lobby_id");
-       gameStarted = true;
        const gameData = {
          game_started: "true",
          lobby_id: lobbyId
        };
        postJson(gameData, "/game_start");
       }
+    }
+  }
+}
+
+function resetRefresh(isReset) {
+  if (isReset == "true") {
+    strike.className = "strike";
+    gameOverArea.className = "hidden";
+    gameBoard.fill('null');
+    cells.forEach((cell) => cell.innerText = "");
+    turn = PLAYER_X;
+    setCellHover();
+    playCount = 0;
+    if (playerToken == 'X') {
+      playerToken = 'O'
+    }
+    else {
+      playerToken = 'X'
     }
   }
 }

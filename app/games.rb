@@ -92,10 +92,20 @@ set :session_secret, "here be dragons"
     @send_data = @play_info.to_json
   end
 
+  get '/game_reset' do
+    if (Lobby[session[:lobby_id]].games.last.winner_id == 0)
+      @reset = "true"
+    else
+      @reset = "false"
+    end
+  end
+
   post '/winner_log' do
     @winner_info = JSON.parse(request.body.read)
-    @game_id = session[:game_id]
-    Game[@game_id].update(winner_id: session[:player_id])
+    @lobby = Lobby[session[:lobby_id]]
+    @player_id = session[:player_id]
+    @game = @lobby.games.last
+    @game.update(winner_id: @player_id.to_i)
   end
 
   get '/join_lobby' do
