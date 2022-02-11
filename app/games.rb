@@ -92,11 +92,39 @@ set :session_secret, "here be dragons"
     @send_data = @play_info.to_json
   end
 
+  get '/set_state' do
+    @lobby_id = session[:lobby_id]
+    @game = Lobby[@lobby_id].games.last
+    @player_id = session[:player_id]
+     @plays = @game.plays
+     if (@player_id.to_i == @plays[0].player_id)
+       @player_token = "X"
+     else
+       @player_token = "O"
+     end
+
+    @last_token = @game.plays.last.token
+    if (@last_token == "X")
+      @turn = "O"
+    else
+      @turn = "X"
+    end
+    @game_board = Array.new(9, "null")
+    @game.plays.each do |play|
+      @game_board[play.cell_id - 1] = play.token
+    end
+    @state_data = {
+      "game_board" => @game_board,
+      "turn" => @turn,
+      "player_token" => @player_token,
+      "play_count" => @game.plays.count
+    }.to_json
+  end
+
   get '/game_reset' do
     @lobby = Lobby[session[:lobby_id]]
     @game = @lobby.games.last
-    # pry.byebug
-    if (@game.plays.count == 0) #&& @game.plays.count == 0)
+    if (@game.plays.count == 0)
       @reset = "true"
     else
       @reset = "false"
@@ -124,7 +152,9 @@ set :session_secret, "here be dragons"
   end
 
   get '/active_lobbies' do
-
+    @player_id = session[:player_id]
+    @active_lobbies = Lobby.where(player_id: @player_id.to_i).or(rival_id: @player_id.to_i).reverse(:id)
+    erb :active_lobbies
   end
 
   get '/tictactoe' do

@@ -5,7 +5,7 @@ if (document.title != "Tic Tac Toe") {
 const cells = document.querySelectorAll('.cell');
 const strike = document.querySelector('#strike');
 const gameSize = cells.length;
-const gameBoard = new Array(gameSize);
+let gameBoard = new Array(gameSize);
 
 gameBoard.fill('null');
 
@@ -28,16 +28,42 @@ const clickSoundO = new Audio ("./sounds/click_3.wav");
 const boardView = document.querySelector('.board');
 const playerRole = getQueryVariable("role");
 
-const generateToken = role => {
-  if (role == "host") {
-    return "X";
-  }
-  else {
-    return "O";
+const postJson = (obj, url) => {
+  const jsonString = JSON.stringify(obj);
+  let request = new XMLHttpRequest();
+
+  request.open("POST", url, true);
+  request.setRequestHeader("Content-Type", "application/json");
+
+  request.send(jsonString);
+}
+
+const getJson = function(url, callback) {
+  var request = new XMLHttpRequest();
+  request.onreadystatechange = function() {
+    if (request.readyState == 4 && request.status == 200) {
+      callback(request.responseText);
+      }
+  };
+  request.open('GET', url);
+  request.send();
+}
+
+// setStateVariables(playerRole);
+let playerToken = "";
+let playCount = 0;
+
+if (playerRole == "host") {
+  playerToken = "X";
+}
+else if (playerRole == "rival"){
+  playerToken = "O";
+}
+else {
+  if (playerRole == "active") {
+    getJson('/set_state', setState);
   }
 }
-let playerToken = generateToken(playerRole);
-var playCount = 0;
 
 // Repeating function to control state
 const stateRefresh = setInterval(function() {
@@ -46,7 +72,7 @@ const stateRefresh = setInterval(function() {
   }
   else {
     if (gameOverArea.className == "visible") {
-        getJson('/game_reset', resetRefresh);
+      getJson('/game_reset', resetRefresh);
     }
     else {
       getJson('/play_refresh', playRefresh);
@@ -100,7 +126,7 @@ const winnerCheck = () => {
   const catScratch = gameBoard.every((cell) => cell !== 'null')
   if (catScratch) {
     gameOverDisplay('null');
-    if (playerRole == "host") {
+    if (playerToken == "X") {
       tie_info = {
         winner_flag: "tie",
         lobby_id: getQueryVariable("lobby_id")
@@ -201,32 +227,10 @@ const startNewGame = () => {
   postJson(gameData, "/game_start");
 }
 
-
-const postJson = (obj, url) => {
-  const jsonString = JSON.stringify(obj);
-  let request = new XMLHttpRequest();
-
-  request.open("POST", url, true);
-  request.setRequestHeader("Content-Type", "application/json");
-
-  request.send(jsonString);
-}
-
-const getJson = function(url, callback) {
-  var request = new XMLHttpRequest();
-  request.onreadystatechange = function() {
-    if (request.readyState == 4 && request.status == 200) {
-      callback(request.responseText);
-      }
-  };
-  request.open('GET', url);
-  request.send();
-}
-
 // Callback functions
 function rivalRefresh(isRival) {
  if (isRival == "true") {
-   if (boardView.id == "hidden") {
+   if (boardView.id == "hidden" || playerRole == "active") {
      boardView.id = "visible";
      if (playerRole == "rival") {
        const lobbyId = getQueryVariable("lobby_id");
@@ -279,6 +283,19 @@ function playRefresh(play_info) {
     winnerCheck();
     playCount = play_info.play_number;
   }
+}
+function setState(state_data) {
+  const stateData = JSON.parse(state_data);
+  playCount = stateData.play_count;
+  playerToken = stateData.player_token;
+  turn = stateData.turn;
+  gameBoard = stateData.game_board;
+
+  gameBoard.forEach(function (token, i) {
+    if (token != "null") {
+      cells[i].innerText = token
+    }
+  })
 }
 
 // Add event listeners
